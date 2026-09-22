@@ -1,0 +1,8 @@
+import {
+  "username/moon_otp" @lib,
+  "moonbitlang/core/encoding/utf8",
+  "moonbitlang/core/string",
+  "moonbitlang/core/env",
+}
+
+pkgtype(kind: "executable")
