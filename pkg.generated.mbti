@@ -1,0 +1,85 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "username/moon_otp"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+pub fn algorithm_name(HashAlgorithm) -> String
+
+pub fn base32_decode(String) -> Bytes raise Base32Error
+
+pub fn base32_encode(BytesView) -> String
+
+pub fn base32_encode_unpadded(BytesView) -> String
+
+pub fn base32_hex_decode(String) -> Bytes raise Base32Error
+
+pub fn base32_hex_encode(BytesView) -> String
+
+pub fn block_size(HashAlgorithm) -> Int
+
+pub fn digest(HashAlgorithm, BytesView) -> Bytes
+
+pub fn generate_secret(length? : Int) -> Bytes raise OtpError
+
+pub fn generate_secret_base32(length? : Int) -> String raise OtpError
+
+pub fn hmac(HashAlgorithm, BytesView, BytesView) -> Bytes
+
+pub fn hotp(HashAlgorithm, Bytes, UInt64, digits? : Int) -> String raise OtpError
+
+pub fn otpauth_uri(OtpAuth) -> String raise OtpError
+
+pub fn output_size(HashAlgorithm) -> Int
+
+pub fn parse_algorithm(String) -> HashAlgorithm?
+
+pub fn parse_otpauth_uri(String) -> OtpAuth raise OtpError
+
+pub fn sha1(BytesView) -> Bytes
+
+pub fn sha256(BytesView) -> Bytes
+
+pub fn sha512(BytesView) -> Bytes
+
+pub fn totp(HashAlgorithm, Bytes, UInt64, digits? : Int, period? : Int) -> String raise OtpError
+
+pub fn totp_now(HashAlgorithm, Bytes, digits? : Int, period? : Int) -> String raise OtpError
+
+// Errors
+pub(all) suberror Base32Error {
+  InvalidCharacter(Int, Char)
+  InvalidPadding(Int)
+} derive(@debug.Debug)
+
+pub(all) suberror OtpError {
+  InvalidDigits(Int)
+  InvalidPeriod(Int)
+  EmptySecret
+  RandomUnavailable
+  InvalidSecretLength(Int)
+  InvalidUri(String)
+} derive(@debug.Debug)
+
+// Types and methods
+pub(all) enum HashAlgorithm {
+  Sha1
+  Sha256
+  Sha512
+} derive(Eq, @debug.Debug)
+
+pub(all) struct OtpAuth {
+  issuer : String
+  account : String
+  secret : Bytes
+  algorithm : HashAlgorithm
+  digits : Int
+  period : Int
+}
+pub fn OtpAuth::new(String, String, Bytes) -> Self
+
+// Type aliases
+
+// Traits
