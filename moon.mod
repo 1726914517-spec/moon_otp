@@ -15,7 +15,7 @@ version = "0.1.0"
 
 readme = "README.mbt.md"
 
-repository = "https://github.com/zhu-tianchi0210/moon_otp"
+repository = "https://github.com/1726914517-spec/moon_otp"
 
 license = "Apache-2.0"
 
