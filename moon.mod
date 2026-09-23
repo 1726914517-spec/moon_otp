@@ -9,13 +9,13 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "username/moon_otp"
+name = "zhu-tianchi0210/moon_otp"
 
 version = "0.1.0"
 
 readme = "README.mbt.md"
 
-repository = "https://github.com/username/moon_otp"
+repository = "https://github.com/zhu-tianchi0210/moon_otp"
 
 license = "Apache-2.0"
 

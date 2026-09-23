@@ -1,5 +1,5 @@
 // Generated using `moon info`, DON'T EDIT IT
-package "username/moon_otp"
+package "zhu-tianchi0210/moon_otp"
 
 import {
   "moonbitlang/core/debug",

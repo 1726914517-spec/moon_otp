@@ -18,7 +18,7 @@ Every algorithm is verified against the official RFC / NIST test vectors
 ## Install
 
 ```bash
-moon add username/moon_otp
+moon add zhu-tianchi0210/moon_otp
 ```
 
 Then import the root package:
@@ -26,7 +26,7 @@ Then import the root package:
 ```moonbit nocheck
 ///|
 import {
-  "username/moon_otp",
+  "zhu-tianchi0210/moon_otp",
 }
 ```
 
