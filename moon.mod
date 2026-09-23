@@ -9,7 +9,7 @@
 //   "moonbitlang/x@0.4.6",
 // }
 
-name = "zhu-tianchi0210/moon_otp"
+name = "1726914517-spec/moon_otp"
 
 version = "0.1.0"
 

@@ -1,5 +1,5 @@
 import {
-  "zhu-tianchi0210/moon_otp" @lib,
+  "1726914517-spec/moon_otp" @lib,
   "moonbitlang/core/encoding/utf8",
 }
 
