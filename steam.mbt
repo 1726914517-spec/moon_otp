@@ -34,7 +34,7 @@ pub fn steam_guard(
     mac[offset + 3].to_uint()
   let out = Buffer()
   for _ in 0..<5 {
-    out.write_byte(steam_alphabet[(bin_code % 26U).to_int()])
+    out.write_byte(steam_alphabet[(bin_code % 26U).reinterpret_as_int()])
     bin_code /= 26U
   }
   @utf8.decode_lossy(out.to_bytes())

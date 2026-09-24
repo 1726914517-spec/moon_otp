@@ -25,7 +25,7 @@ fn usage() -> Unit {
 
 ///|
 fn parse_flags(argv : Array[String]) -> Map[String, String] {
-  let flags = Map::new()
+  let flags = Map([], capacity=0)
   let mut i = 2
   while i < argv.length() {
     let token = argv[i]

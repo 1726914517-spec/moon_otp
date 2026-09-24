@@ -37,7 +37,7 @@ pub fn sha256(data : BytesView) -> Bytes {
   }
   let bit_length = data.length() * 8
   padded.write_uint_be(0U)
-  padded.write_uint_be(bit_length.to_uint())
+  padded.write_uint_be(bit_length.reinterpret_as_uint())
   let msg = padded.to_bytes()
 
   let h : FixedArray[UInt] = [

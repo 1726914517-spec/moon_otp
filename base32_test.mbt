@@ -97,7 +97,7 @@ test "padding in the middle is rejected" {
   let e = @test.expect_error(fn() -> Unit raise Base32Error {
     ignore(base32_decode("M=XQ===="))
   })
-  @test.assert_eq(e is InvalidPadding, true)
+  @test.assert_eq(e is InvalidPadding(_), true)
 }
 
 ///|
@@ -105,7 +105,7 @@ test "wrong padding length is rejected" {
   let e = @test.expect_error(fn() -> Unit raise Base32Error {
     ignore(base32_decode("MY=====")) // 5 padding chars instead of 6
   })
-  @test.assert_eq(e is InvalidPadding, true)
+  @test.assert_eq(e is InvalidPadding(_), true)
 }
 
 ///|
@@ -113,7 +113,7 @@ test "impossible unpadded length is rejected" {
   let e = @test.expect_error(fn() -> Unit raise Base32Error {
     ignore(base32_decode("M")) // 1 data character cannot encode whole bytes
   })
-  @test.assert_eq(e is InvalidPadding, true)
+  @test.assert_eq(e is InvalidPadding(_), true)
 }
 
 ///|
@@ -123,5 +123,5 @@ test "non-zero trailing bits are rejected" {
   let e = @test.expect_error(fn() -> Unit raise Base32Error {
     ignore(base32_decode("MZ"))
   })
-  @test.assert_eq(e is InvalidPadding, true)
+  @test.assert_eq(e is InvalidPadding(_), true)
 }

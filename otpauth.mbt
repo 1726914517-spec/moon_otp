@@ -8,7 +8,7 @@ pub(all) enum OtpKind {
   Totp
   /// Event/counter-based one-time password.
   Hotp
-} derive(Eq, Show, @debug.Debug)
+} derive(Eq, @debug.Debug)
 
 ///|
 /// Parameters of an otpauth enrollment URI.
@@ -91,7 +91,7 @@ pub fn otpauth_uri(otp : OtpAuth) -> String raise OtpError {
   if otp.secret.length() == 0 {
     raise EmptySecret
   }
-  if otp.digits < 1 || otp.digits > 10 {
+  if otp.digits < 1 || otp.digits > 8 {
     raise InvalidDigits(otp.digits)
   }
   let (type_name, extra_param) = match otp.otp_type {

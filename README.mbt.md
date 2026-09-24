@@ -214,6 +214,13 @@ solution:
   - correct current-time TOTP with a configurable drift window;
   - RFC-verified HOTP and the complete RFC vector suites (HOTP Appendix D,
     TOTP Appendix B across SHA-1/256/512).
+- **cc06b/mooncry** is a broad, zero-dependency cryptographic primitives
+  library (hashes, AEAD, KDFs, asymmetric and post-quantum algorithms, ...).
+  Its OTP surface is generation only — `hotp`/`totp` plus SHA-256/512 variants
+  — with no Base32, no otpauth:// build or parse, no current-time/verify APIs,
+  no Steam Guard, recovery codes, resynchronization, or CLI. moon_otp is a
+  dedicated, end-to-end OTP solution covering enrollment (secret generation +
+  otpauth), distribution (CLI) and verification.
 - **Tigls/mb-hmac** provides HMAC; moon_otp uses its own HMAC because the OTP
   layer requires all three hash algorithms and tight control of block sizes.
 - **yyjeqhc/base32** and **Lfan-ke/basex** provide Base32; moon_otp includes

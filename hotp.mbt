@@ -16,14 +16,14 @@ fn zero_pad(code : Int, digits : Int) -> String {
 /// - `algorithm`: hash function used for the HMAC.
 /// - `key`: shared secret (RFC test keys are ASCII; real deployments use random bytes).
 /// - `counter`: 8-byte moving factor.
-/// - `digits`: number of output digits (RFC 4226 recommends 6; supported 1..10).
+/// - `digits`: number of output digits (RFC 4226 recommends 6; supported 1..8).
 pub fn hotp(
   algorithm : HashAlgorithm,
   key : Bytes,
   counter : UInt64,
   digits? : Int = 6,
 ) -> String raise OtpError {
-  if digits < 1 || digits > 10 {
+  if digits < 1 || digits > 8 {
     raise InvalidDigits(digits)
   }
   if key.length() == 0 {
@@ -42,7 +42,7 @@ pub fn hotp(
   for _ in 0..<digits {
     modulus *= 10
   }
-  let code = (bin_code % modulus.to_uint()).to_int()
+  let code = (bin_code % modulus.reinterpret_as_uint()).reinterpret_as_int()
   zero_pad(code, digits)
 }
 

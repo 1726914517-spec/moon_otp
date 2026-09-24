@@ -46,7 +46,7 @@ pub fn sha1(data : BytesView) -> Bytes {
   }
   let bit_length = data.length() * 8
   padded.write_uint_be(0U) // high 32 bits (messages fit in low 32 bits)
-  padded.write_uint_be(bit_length.to_uint()) // low 32 bits
+  padded.write_uint_be(bit_length.reinterpret_as_uint()) // low 32 bits
   let msg = padded.to_bytes()
 
   let mut h0 = SHA1_H0

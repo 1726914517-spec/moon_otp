@@ -3,7 +3,7 @@
 test "recovery codes format and uniqueness" {
   let codes = generate_recovery_codes()
   @test.assert_eq(10, codes.length())
-  let seen = Set::new()
+  let seen = Set([], capacity=0)
   for code in codes {
     // Default form: XXXX-XXXX.
     @test.assert_eq(9, code.length())
