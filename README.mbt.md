@@ -13,7 +13,7 @@ from the ground up — no external crypto dependencies.
 - A small command line tool for enrollment and code generation
 
 Every algorithm is verified against the official RFC / NIST test vectors
-(32 tests).
+(33 tests).
 
 ## Install
 
@@ -61,6 +61,10 @@ let current = totp_now(Sha1, secret)
 let valid = current == submitted_code ||
   totp(Sha1, secret, now_seconds - 30) == submitted_code ||
   totp(Sha1, secret, now_seconds + 30) == submitted_code
+
+///|
+/// The same drift-tolerant check is provided directly:
+let ok = totp_verify(Sha1, secret, submitted_code)
 ```
 
 ### HOTP
@@ -129,7 +133,7 @@ moon run cmd/main -- uri --secret <base32> --issuer GitHub --account alice --alg
 moon test
 ```
 
-The suite contains 32 tests covering:
+The suite contains 33 tests covering:
 
 - FIPS 180-4 / NIST vectors for all three hashes (empty, `"abc"`, two-block)
 - HMAC vectors from RFC 2202 (SHA-1) and RFC 4231 (SHA-256/512)
@@ -138,7 +142,7 @@ The suite contains 32 tests covering:
   8-digit values
 - Base32 RFC 4648 vectors and strict padding validation
 - otpauth URI round trips and malformed-URI errors
-- Input validation and secure secret generation
+- Drift-tolerant `totp_verify`, input validation and secret generation
 
 ## Project layout
 
@@ -156,6 +160,26 @@ moon_otp/
 ├── otpauth.mbt       otpauth:// URI build/parse
 └── cmd/main/         Command line tool
 ```
+
+## Relation to existing packages
+
+moon_otp is a focused OTP library. Related registry packages overlap with
+individual building blocks but do not provide a complete, dedicated OTP
+solution:
+
+- **Q30399/moonvault** is a broad password-hashing/crypto suite whose OTP
+  surface covers TOTP generation, verification and URI *building*. moon_otp
+  additionally provides:
+  - HOTP (RFC 4226) code generation — moonvault lists HOTP in its feature
+    table but ships no HOTP function;
+  - otpauth:// URI *parsing* (moonvault only builds URIs);
+  - a command line tool with gen/now/hotp/uri;
+  - the complete RFC vector suites for HOTP Appendix D and TOTP Appendix B
+    across SHA-1/256/512.
+- **Tigls/mb-hmac** provides HMAC; moon_otp uses its own HMAC because the OTP
+  layer requires all three hash algorithms and tight control of block sizes.
+- **yyjeqhc/base32** and **Lfan-ke/basex** provide Base32; moon_otp includes
+  its own decoder to validate OTP secrets without an extra dependency.
 
 ## License
 
