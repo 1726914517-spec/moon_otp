@@ -48,6 +48,8 @@ pub fn totp(HashAlgorithm, Bytes, UInt64, digits? : Int, period? : Int) -> Strin
 
 pub fn totp_now(HashAlgorithm, Bytes, digits? : Int, period? : Int) -> String raise OtpError
 
+pub fn totp_verify(HashAlgorithm, Bytes, String, window? : Int, digits? : Int, period? : Int) -> Bool raise OtpError
+
 // Errors
 pub(all) suberror Base32Error {
   InvalidCharacter(Int, Char)

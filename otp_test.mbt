@@ -108,3 +108,21 @@ test "generated secret round trips through base32" {
     },
   )
 }
+
+///|
+test "totp_verify accepts current code and rejects others" {
+  let key = @utf8.encode("12345678901234567890")
+  let current = totp_now(Sha1, key)
+  @test.assert_eq(true, totp_verify(Sha1, key, current))
+  @test.assert_eq(false, totp_verify(Sha1, key, "000000"))
+  let e = @test.expect_error(fn() -> Bool raise OtpError {
+    totp_verify(Sha1, key, current, window=-1)
+  })
+  @test.assert_eq(
+    true,
+    match e {
+      InvalidUri(_) => true
+      _ => false
+    },
+  )
+}

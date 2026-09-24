@@ -11,7 +11,7 @@
 
 name = "1726914517-spec/moon_otp"
 
-version = "0.1.0"
+version = "0.2.0"
 
 readme = "README.mbt.md"
 

@@ -32,3 +32,33 @@ pub fn totp_now(
   let unix_time = @env.now() / 1000UL
   totp(algorithm, key, unix_time, digits~, period~)
 }
+
+///|
+/// Verify a submitted TOTP code, accepting `window` time steps of clock
+/// drift in each direction (default 1 step).
+pub fn totp_verify(
+  algorithm : HashAlgorithm,
+  key : Bytes,
+  code : String,
+  window? : Int = 1,
+  digits? : Int = 6,
+  period? : Int = 30,
+) -> Bool raise OtpError {
+  if window < 0 {
+    raise InvalidUri("window must be non-negative")
+  }
+  // @env.now() returns milliseconds.
+  let counter = @env.now() / 1000UL / period.to_uint64()
+  let mut offset = 0
+  while offset <= window {
+    if hotp(algorithm, key, counter + offset.to_uint64(), digits~) == code {
+      return true
+    }
+    if offset != 0 &&
+      hotp(algorithm, key, counter - offset.to_uint64(), digits~) == code {
+      return true
+    }
+    offset += 1
+  }
+  false
+}
