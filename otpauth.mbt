@@ -2,7 +2,16 @@
 /// Authenticator and compatible apps).
 
 ///|
-/// Parameters of a TOTP enrollment URI.
+/// OTP type carried by an otpauth URI.
+pub(all) enum OtpKind {
+  /// Time-based one-time password.
+  Totp
+  /// Event/counter-based one-time password.
+  Hotp
+} derive(Eq, Show, @debug.Debug)
+
+///|
+/// Parameters of an otpauth enrollment URI.
 pub(all) struct OtpAuth {
   /// Provider or service name, e.g. "Acme Corp".
   issuer : String
@@ -14,18 +23,32 @@ pub(all) struct OtpAuth {
   algorithm : HashAlgorithm
   /// Number of code digits.
   digits : Int
-  /// Time step in seconds.
+  /// Time step in seconds (TOTP).
   period : Int
+  /// TOTP or HOTP.
+  otp_type : OtpKind
+  /// Initial counter (HOTP).
+  counter : UInt64
 }
 
 ///|
-/// Create the default parameter set for a secret (SHA-1, 6 digits, 30 s).
+/// Create the default parameter set for a secret (TOTP, SHA-1, 6 digits,
+/// 30 s).
 pub fn OtpAuth::new(
   issuer : String,
   account : String,
   secret : Bytes,
 ) -> OtpAuth {
-  { issuer, account, secret, algorithm: Sha1, digits: 6, period: 30, }
+  {
+    issuer,
+    account,
+    secret,
+    algorithm: Sha1,
+    digits: 6,
+    period: 30,
+    otp_type: Totp,
+    counter: 0UL,
+  }
 }
 
 ///|
@@ -63,7 +86,7 @@ fn algorithm_from_uri(s : StringView) -> HashAlgorithm? {
 }
 
 ///|
-/// Build an `otpauth://totp/` URI.
+/// Build an `otpauth://` URI (TOTP or HOTP).
 pub fn otpauth_uri(otp : OtpAuth) -> String raise OtpError {
   if otp.secret.length() == 0 {
     raise EmptySecret
@@ -71,8 +94,14 @@ pub fn otpauth_uri(otp : OtpAuth) -> String raise OtpError {
   if otp.digits < 1 || otp.digits > 10 {
     raise InvalidDigits(otp.digits)
   }
-  if otp.period <= 0 {
-    raise InvalidPeriod(otp.period)
+  let (type_name, extra_param) = match otp.otp_type {
+    Totp => {
+      if otp.period <= 0 {
+        raise InvalidPeriod(otp.period)
+      }
+      ("totp", "&period=" + otp.period.to_string())
+    }
+    Hotp => ("hotp", "&counter=" + otp.counter.to_string())
   }
   let label = pct_encode(otp.issuer) + ":" + pct_encode(otp.account)
   let secret = base32_encode_unpadded(otp.secret)
@@ -84,19 +113,20 @@ pub fn otpauth_uri(otp : OtpAuth) -> String raise OtpError {
     uri_algorithm_name(otp.algorithm) +
     "&digits=" +
     otp.digits.to_string() +
-    "&period=" +
-    otp.period.to_string()
-  "otpauth://totp/" + label + query
+    extra_param
+  "otpauth://" + type_name + "/" + label + query
 }
 
 ///|
-/// Parse an `otpauth://totp/` URI.
+/// Parse an `otpauth://totp/` or `otpauth://hotp/` URI.
 pub fn parse_otpauth_uri(uri : String) -> OtpAuth raise OtpError {
-  let prefix = "otpauth://totp/"
-  if !uri.has_prefix(prefix) {
-    raise InvalidUri("not an otpauth://totp URI")
+  let (otp_type, rest) = if uri.has_prefix("otpauth://totp/") {
+    (Totp, uri["otpauth://totp/".length():].to_owned())
+  } else if uri.has_prefix("otpauth://hotp/") {
+    (Hotp, uri["otpauth://hotp/".length():].to_owned())
+  } else {
+    raise InvalidUri("not an otpauth://totp or otpauth://hotp URI")
   }
-  let rest : StringView = uri[prefix.length():]
   let (label_view, query_view) = match rest.split_once("?") {
     Some(parts) => parts
     None => raise InvalidUri("missing query component")
@@ -113,6 +143,7 @@ pub fn parse_otpauth_uri(uri : String) -> OtpAuth raise OtpError {
   let mut algorithm = Sha1
   let mut digits = 6
   let mut period = 30
+  let mut counter = 0UL
   for pair in query_view.split("&") {
     let (k, v) = match pair.split_once("=") {
       Some(parts) => parts
@@ -135,6 +166,10 @@ pub fn parse_otpauth_uri(uri : String) -> OtpAuth raise OtpError {
       period = @string.parse_int(v) catch {
         _ => raise InvalidUri("bad period: " + v.to_owned())
       }
+    } else if k == "counter" {
+      counter = @string.parse_uint64(v) catch {
+        _ => raise InvalidUri("bad counter: " + v.to_owned())
+      }
     } else {
       ignore(())
     }
@@ -154,5 +189,5 @@ pub fn parse_otpauth_uri(uri : String) -> OtpAuth raise OtpError {
         None => ""
       }
   }
-  { issuer, account, secret, algorithm, digits, period, }
+  { issuer, account, secret, algorithm, digits, period, otp_type, counter, }
 }

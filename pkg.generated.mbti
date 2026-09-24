@@ -22,6 +22,8 @@ pub fn block_size(HashAlgorithm) -> Int
 
 pub fn digest(HashAlgorithm, BytesView) -> Bytes
 
+pub fn generate_recovery_codes(count? : Int, groups? : Int, group_size? : Int) -> Array[String] raise OtpError
+
 pub fn generate_secret(length? : Int) -> Bytes raise OtpError
 
 pub fn generate_secret_base32(length? : Int) -> String raise OtpError
@@ -29,6 +31,8 @@ pub fn generate_secret_base32(length? : Int) -> String raise OtpError
 pub fn hmac(HashAlgorithm, BytesView, BytesView) -> Bytes
 
 pub fn hotp(HashAlgorithm, Bytes, UInt64, digits? : Int) -> String raise OtpError
+
+pub fn hotp_resync(HashAlgorithm, Bytes, UInt64, String, String, window? : Int) -> UInt64? raise OtpError
 
 pub fn otpauth_uri(OtpAuth) -> String raise OtpError
 
@@ -43,6 +47,10 @@ pub fn sha1(BytesView) -> Bytes
 pub fn sha256(BytesView) -> Bytes
 
 pub fn sha512(BytesView) -> Bytes
+
+pub fn steam_guard(Bytes, UInt64, period? : Int) -> String raise OtpError
+
+pub fn steam_guard_now(Bytes) -> String raise OtpError
 
 pub fn totp(HashAlgorithm, Bytes, UInt64, digits? : Int, period? : Int) -> String raise OtpError
 
@@ -79,8 +87,15 @@ pub(all) struct OtpAuth {
   algorithm : HashAlgorithm
   digits : Int
   period : Int
+  otp_type : OtpKind
+  counter : UInt64
 }
 pub fn OtpAuth::new(String, String, Bytes) -> Self
+
+pub(all) enum OtpKind {
+  Totp
+  Hotp
+} derive(Eq, Show, @debug.Debug)
 
 // Type aliases
 

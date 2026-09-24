@@ -16,6 +16,11 @@ fn usage() -> Unit {
   println(
     "  moon_otp uri --secret <base32> --issuer <s> --account <s> [--algorithm ..] [--digits <n>] [--period <n>]",
   )
+  println("  moon_otp steam --secret <base32>")
+  println("  moon_otp recovery [--count <n>]")
+  println(
+    "  moon_otp verify --secret <base32> --code <code> [--window <n>] [--algorithm ..]",
+  )
 }
 
 ///|
@@ -106,6 +111,8 @@ fn cmd_gen(flags : Map[String, String]) -> Unit raise @lib.OtpError {
     algorithm,
     digits,
     period,
+    otp_type: @lib.Totp,
+    counter: 0UL,
   }
   println("Secret (Base32): " + @lib.base32_encode_unpadded(secret))
   println("otpauth URI:    " + @lib.otpauth_uri(otp))
@@ -120,7 +127,11 @@ fn cmd_now(flags : Map[String, String]) -> Unit raise @lib.OtpError {
   let algorithm = algorithm_flag(flags)
   let digits = int_flag(flags, "digits", 6)
   let period = int_flag(flags, "period", 30)
-  println(@lib.totp_now(algorithm, secret, digits~, period~))
+  let code = @lib.totp_now(algorithm, secret, digits~, period~)
+  // @env.now() returns milliseconds.
+  let now_seconds = @env.now() / 1000UL
+  let remaining = period.to_uint64() - now_seconds % period.to_uint64()
+  println(code + " (" + remaining.to_string() + "s remaining)")
 }
 
 ///|
@@ -159,8 +170,42 @@ fn cmd_uri(flags : Map[String, String]) -> Unit raise @lib.OtpError {
     algorithm,
     digits,
     period,
+    otp_type: @lib.Totp,
+    counter: 0UL,
   }
   println(@lib.otpauth_uri(otp))
+}
+
+///|
+fn cmd_steam(flags : Map[String, String]) -> Unit raise @lib.OtpError {
+  let secret = decode_secret(flags)
+  println(@lib.steam_guard_now(secret))
+}
+
+///|
+fn cmd_recovery(flags : Map[String, String]) -> Unit raise @lib.OtpError {
+  let count = int_flag(flags, "count", 10)
+  println("Recovery codes (each may be used once):")
+  for code in @lib.generate_recovery_codes(count~) {
+    println("  " + code)
+  }
+}
+
+///|
+fn cmd_verify(flags : Map[String, String]) -> Unit raise @lib.OtpError {
+  let secret = decode_secret(flags)
+  let algorithm = algorithm_flag(flags)
+  let window = int_flag(flags, "window", 1)
+  let code = match flags.get("code") {
+    Some(v) => v
+    None => raise @lib.InvalidUri("missing required --code <code>")
+  }
+  if @lib.totp_verify(algorithm, secret, code, window~) {
+    println("OK")
+  } else {
+    println("FAIL")
+    abort("verification failed")
+  }
 }
 
 ///|
@@ -178,6 +223,9 @@ fn main {
       "now" => cmd_now(flags)
       "hotp" => cmd_hotp(flags)
       "uri" => cmd_uri(flags)
+      "steam" => cmd_steam(flags)
+      "recovery" => cmd_recovery(flags)
+      "verify" => cmd_verify(flags)
       _ => {
         usage()
         abort("")

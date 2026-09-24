@@ -48,6 +48,8 @@ fn main raise {
     algorithm: @lib.Sha256,
     digits: 6,
     period: 30,
+    otp_type: @lib.Totp,
+    counter: 0UL,
   }
   let uri = @lib.otpauth_uri(otp)
   println("URI: " + uri)

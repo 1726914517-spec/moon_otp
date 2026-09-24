@@ -126,3 +126,17 @@ test "totp_verify accepts current code and rejects others" {
     },
   )
 }
+
+///|
+test "hotp resync finds consecutive codes (RFC 4226 §7.4)" {
+  let key = @utf8.encode("12345678901234567890")
+  // RFC 4226 Appendix D: counter 2 => 359152, counter 3 => 969429.
+  @test.assert_eq(
+    Some(2UL),
+    hotp_resync(Sha1, key, 0UL, "359152", "969429", window=5),
+  )
+  @test.assert_eq(
+    None,
+    hotp_resync(Sha1, key, 0UL, "000000", "111111", window=5),
+  )
+}

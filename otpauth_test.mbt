@@ -37,11 +37,34 @@ test "otpauth sha256/8 digits round trip" {
     algorithm: Sha256,
     digits: 8,
     period: 60,
+    otp_type: Totp,
+    counter: 0UL,
   }
   let parsed = parse_otpauth_uri(otpauth_uri(otp))
   @test.assert_eq(@moon_otp.Sha256, parsed.algorithm)
   @test.assert_eq(8, parsed.digits)
   @test.assert_eq(60, parsed.period)
+}
+
+///|
+test "otpauth hotp build/parse round trip" {
+  let secret = @utf8.encode("12345678901234567890")
+  let otp : OtpAuth = {
+    issuer: "Acme",
+    account: "bob",
+    secret,
+    algorithm: Sha1,
+    digits: 6,
+    period: 30,
+    otp_type: Hotp,
+    counter: 42UL,
+  }
+  let uri = otpauth_uri(otp)
+  @test.assert_eq(true, uri.has_prefix("otpauth://hotp/"))
+  @test.assert_eq(true, uri.contains("&counter=42"))
+  let parsed = parse_otpauth_uri(uri)
+  @test.assert_eq(@moon_otp.Hotp, parsed.otp_type)
+  @test.assert_eq(42UL, parsed.counter)
 }
 
 ///|

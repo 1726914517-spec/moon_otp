@@ -45,3 +45,32 @@ pub fn hotp(
   let code = (bin_code % modulus.to_uint()).to_int()
   zero_pad(code, digits)
 }
+
+///|
+/// Resynchronize an HOTP client counter per RFC 4226 §7.4.
+///
+/// The client submits two consecutive codes; the server searches a look-ahead
+/// `window` starting from its stored counter. Returns the counter matching
+/// the first code, or `None` if the pair was not found.
+pub fn hotp_resync(
+  algorithm : HashAlgorithm,
+  key : Bytes,
+  current_counter : UInt64,
+  code1 : String,
+  code2 : String,
+  window? : Int = 5,
+) -> UInt64? raise OtpError {
+  if window < 0 {
+    raise InvalidUri("window must be non-negative")
+  }
+  let mut i = 0
+  while i <= window {
+    let counter = current_counter + i.to_uint64()
+    if hotp(algorithm, key, counter) == code1 &&
+      hotp(algorithm, key, counter + 1UL) == code2 {
+      return Some(counter)
+    }
+    i += 1
+  }
+  None
+}
