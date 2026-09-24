@@ -167,15 +167,17 @@ moon_otp is a focused OTP library. Related registry packages overlap with
 individual building blocks but do not provide a complete, dedicated OTP
 solution:
 
-- **Q30399/moonvault** is a broad password-hashing/crypto suite whose OTP
-  surface covers TOTP generation, verification and URI *building*. moon_otp
-  additionally provides:
-  - HOTP (RFC 4226) code generation — moonvault lists HOTP in its feature
-    table but ships no HOTP function;
-  - otpauth:// URI *parsing* (moonvault only builds URIs);
+- **Q30399/moonvault** is a broad password-hashing/crypto suite. Its published
+  0.1.0 covers TOTP generation/verification and URI building (with no HOTP
+  function); its unreleased main branch adds HOTP, but `totp_now` and
+  `totp_verify` pass a hardcoded timestamp 0 and never read the clock. moon_otp
+  provides the missing, correct pieces:
+  - otpauth:// URI *parsing* — moonvault only builds URIs (without
+    algorithm/digits/period parameters or percent encoding);
   - a command line tool with gen/now/hotp/uri;
-  - the complete RFC vector suites for HOTP Appendix D and TOTP Appendix B
-    across SHA-1/256/512.
+  - correct current-time TOTP with a configurable drift window;
+  - RFC-verified HOTP and the complete RFC vector suites (HOTP Appendix D,
+    TOTP Appendix B across SHA-1/256/512).
 - **Tigls/mb-hmac** provides HMAC; moon_otp uses its own HMAC because the OTP
   layer requires all three hash algorithms and tight control of block sizes.
 - **yyjeqhc/base32** and **Lfan-ke/basex** provide Base32; moon_otp includes
