@@ -9,11 +9,14 @@ from the ground up — no external crypto dependencies.
 - **SHA-1 / SHA-256 / SHA-512** — FIPS 180-4 hash implementations
 - **Base32** — [RFC 4648], standard and Extended Hex alphabets
 - **otpauth:// URIs** — build and parse the de-facto authenticator format
+- **Steam Guard** — five-character Steam mobile authenticator codes
+- **Recovery codes** — one-time backup codes for account recovery
+- **HOTP resync** — counter resynchronization per RFC 4226 §7.4
 - **Secure secret generation** — backed by the platform CSPRNG
 - A small command line tool for enrollment and code generation
 
 Every algorithm is verified against the official RFC / NIST test vectors
-(33 tests).
+(40 tests).
 
 ## Install
 
@@ -97,6 +100,27 @@ let code = totp_now(
 )
 ```
 
+### Steam Guard and recovery codes
+
+```moonbit nocheck
+///|
+let steam_code = steam_guard_now(secret) // e.g. "YHBCW"
+
+///|
+let recovery = generate_recovery_codes() // 10 codes like "PJKP-Y94J"
+```
+
+### HOTP counter resynchronization (RFC 4226 §7.4)
+
+```moonbit nocheck
+///|
+/// Client drifted ahead: it submitted codes for counters 2 and 3.
+match hotp_resync(Sha1, key, server_counter, code1, code2, window=5) {
+  Some(new_counter) => // persist new_counter
+  None => // reject
+}
+```
+
 All fallible functions raise the `OtpError` error set (invalid digits, empty
 secret, malformed URI, unavailable random source, ...).
 
@@ -117,7 +141,7 @@ Current code:   832873
 Other commands:
 
 ```bash
-# Current TOTP for an existing secret
+# Current TOTP with seconds remaining in the step
 moon run cmd/main -- now --secret 2WEXWAJKI3EFXMXBI3NE2BIAIHE2UNGV
 
 # HOTP at a specific counter
@@ -125,6 +149,15 @@ moon run cmd/main -- hotp --secret GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ --counter 0
 
 # Build an otpauth URI from an existing secret
 moon run cmd/main -- uri --secret <base32> --issuer GitHub --account alice --algorithm SHA256
+
+# Steam Guard code
+moon run cmd/main -- steam --secret <base32>
+
+# One-time recovery codes
+moon run cmd/main -- recovery --count 10
+
+# Verify a code (exit 0 on success, 1 on failure)
+moon run cmd/main -- verify --secret <base32> --code 123456 --window 1
 ```
 
 ## Testing
@@ -133,7 +166,7 @@ moon run cmd/main -- uri --secret <base32> --issuer GitHub --account alice --alg
 moon test
 ```
 
-The suite contains 33 tests covering:
+The suite contains 40 tests covering:
 
 - FIPS 180-4 / NIST vectors for all three hashes (empty, `"abc"`, two-block)
 - HMAC vectors from RFC 2202 (SHA-1) and RFC 4231 (SHA-256/512)
@@ -141,7 +174,8 @@ The suite contains 33 tests covering:
 - The complete TOTP Appendix B table for SHA-1/256/512, including the
   8-digit values
 - Base32 RFC 4648 vectors and strict padding validation
-- otpauth URI round trips and malformed-URI errors
+- otpauth URI round trips for both TOTP and HOTP, and malformed-URI errors
+- Steam Guard format, recovery codes and HOTP resynchronization
 - Drift-tolerant `totp_verify`, input validation and secret generation
 
 ## Project layout
@@ -154,10 +188,12 @@ moon_otp/
 ├── sha512.mbt        SHA-512
 ├── digest.mbt        HashAlgorithm dispatch
 ├── hmac.mbt          HMAC (RFC 2104)
-├── hotp.mbt          HOTP (RFC 4226)
+├── hotp.mbt          HOTP (RFC 4226) + resync
 ├── totp.mbt          TOTP (RFC 6238)
+├── steam.mbt         Steam Guard codes
+├── recovery.mbt      One-time recovery codes
 ├── secret.mbt        CSPRNG-backed secret generation
-├── otpauth.mbt       otpauth:// URI build/parse
+├── otpauth.mbt       otpauth:// URI build/parse (TOTP + HOTP)
 └── cmd/main/         Command line tool
 ```
 
